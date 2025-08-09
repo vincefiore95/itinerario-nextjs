@@ -9,7 +9,8 @@ export default function DestinationForm({ onAdd }) {
     e.preventDefault();
     if (!address) return;
     onAdd({ name: name || address, address });
-    setName(''); setAddress('');
+    setName('');
+    setAddress('');
   };
 
   return (

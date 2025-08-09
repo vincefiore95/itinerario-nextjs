@@ -1,23 +1,33 @@
 // hooks/useLocalStorage.js
 import { useEffect, useState } from 'react';
 
+/**
+ * Hook minimal per persistere uno stato nel localStorage.
+ * Non sovrascrive mai i default: il chiamante passa initialValue.
+ */
 export function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(initialValue);
 
-  // load
+  // Carica al primo render
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(key);
+      const raw = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
       if (raw) setValue(JSON.parse(raw));
-    } catch {}
+    } catch {
+      /* ignore */
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  // save
+  // Salva ad ogni modifica
   useEffect(() => {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {}
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+    } catch {
+      /* ignore */
+    }
   }, [key, value]);
 
   return [value, setValue];

@@ -6,31 +6,27 @@ import ItineraryForm from '../components/ItineraryForm';
 
 export default function Home() {
   const [custom, setCustom] = useLocalStorage('itineraries_custom', []);
-  // opzionale se vuoi nascondere default: const [hidden, setHidden] = useLocalStorage('itineraries_hidden', []);
 
+  // Unione: i tuoi prima (flag _custom), poi i default che non sono stati sovrascritti
   const combined = [
     ...custom.map(c => ({ ...c, _custom: true })),
     ...DEFAULTS
-      // opzionale: per nascondere default: .filter(d => !hidden.includes(d.id))
       .filter(d => !custom.some(c => c.id === d.id))
       .map(d => ({ ...d, _custom: false })),
-  ].sort((a,b) => (a.id < b.id ? -1 : 1));
+  ].sort((a, b) => (a.id < b.id ? -1 : 1));
 
   const addItinerary = (itin) => {
     if (combined.some(d => d.id === itin.id)) {
       alert('Esiste già un itinerario con questa data.');
       return;
     }
-    setCustom([ ...custom, itin ]);
+    setCustom([...custom, itin]);
   };
 
   const deleteItinerary = (id) => {
     if (!confirm('Eliminare questo itinerario?')) return;
     setCustom(custom.filter(c => c.id !== id));
   };
-
-  // opzionale: nascondi default
-  // const hideDefault = (id) => setHidden([...new Set([...hidden, id])]);
 
   return (
     <div className="container">
@@ -47,7 +43,6 @@ export default function Home() {
             day={day}
             isCustom={day._custom}
             onDelete={() => deleteItinerary(day.id)}
-            // onHide={() => hideDefault(day.id)}  // opzionale
           />
         ))}
       </section>
