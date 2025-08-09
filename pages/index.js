@@ -4,31 +4,31 @@ import { itineraries as DEFAULTS } from '../data/itineraries';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import ItineraryForm from '../components/ItineraryForm';
 
-export default function Home() {
-  const [custom, setCustom] = useLocalStorage('itineraries_custom', []);
+// converte i default aggiungendo displayDate se non c'è
+const withDisplay = (list) =>
+  list.map(d => ({
+    ...d,
+    displayDate:
+      d.displayDate ||
+      new Date(d.id).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }));
 
-  // 1) Prima i default che non sono stati sovrascritti,
-  // 2) poi gli itinerari personalizzati nell'ordine di inserimento
-  const combined = [
-    ...DEFAULTS
-      .filter(d => !custom.some(c => c.id === d.id))
-      .map(d => ({ ...d, _custom: false })),
-    ...custom.map(c => ({ ...c, _custom: true })),
-  ];
+export default function Home() {
+  // unica fonte dati: localStorage, inizializzato con i default
+  const [itins, setItins] = useLocalStorage('itineraries_all', withDisplay(DEFAULTS));
 
   const addItinerary = (itin) => {
-    // Evita duplicati sulla stessa data
-    if ([...custom, ...DEFAULTS].some(d => d.id === itin.id)) {
+    if (itins.some(d => d.id === itin.id)) {
       alert('Esiste già un itinerario con questa data.');
       return;
     }
-    // APPEND in coda
-    setCustom([...custom, itin]);
+    // Append in coda
+    setItins([...itins, itin]);
   };
 
   const deleteItinerary = (id) => {
     if (!confirm('Eliminare questo itinerario?')) return;
-    setCustom(custom.filter(c => c.id !== id));
+    setItins(itins.filter(i => i.id !== id));
   };
 
   return (
@@ -40,11 +40,10 @@ export default function Home() {
       <ItineraryForm onAdd={addItinerary} />
 
       <section className="grid">
-        {combined.map(day => (
+        {itins.map(day => (
           <DayCard
             key={day.id}
             day={day}
-            isCustom={day._custom}
             onDelete={() => deleteItinerary(day.id)}
           />
         ))}

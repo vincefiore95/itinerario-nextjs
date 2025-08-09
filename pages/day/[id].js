@@ -4,19 +4,25 @@ import { itineraries as DEFAULTS } from '../../data/itineraries';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import DestinationForm from '../../components/DestinationForm';
 
+const withDisplay = (list) =>
+  list.map(d => ({
+    ...d,
+    displayDate:
+      d.displayDate ||
+      new Date(d.id).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }));
+
 export default function DayDetails() {
   const router = useRouter();
   const { id } = router.query;
-  const [custom, setCustom] = useLocalStorage('itineraries_custom', []);
+  const [itins, setItins] = useLocalStorage('itineraries_all', withDisplay(DEFAULTS));
 
   if (!id) return null;
 
-  const customIdx = custom.findIndex(d => d.id === id);
-  const customItin = customIdx >= 0 ? custom[customIdx] : null;
-  const defaultItin = DEFAULTS.find(d => d.id === id) || null;
-  const itinerary = customItin || defaultItin;
+  const idx = itins.findIndex(d => d.id === id);
+  const itin = idx >= 0 ? itins[idx] : null;
 
-  if (!itinerary) {
+  if (!itin) {
     return (
       <div className="container">
         <p style={{color:'#d30'}}>Itinerario non trovato.</p>
@@ -32,35 +38,22 @@ export default function DayDetails() {
   };
 
   const addDestination = (dest) => {
-    if (customItin) {
-      // aggiorna l'esistente
-      const next = [...custom];
-      next[customIdx] = { ...customItin, destinations: [dest, ...customItin.destinations] };
-      setCustom(next);
-    } else if (defaultItin) {
-      // prima personalizzazione: APPEND in coda
-      const newCustom = { ...defaultItin, destinations: [dest, ...defaultItin.destinations] };
-      setCustom([...custom, newCustom]);
-    } else {
-      // creazione da URL: APPEND in coda
-      const newCustom = { id, title: id, destinations: [dest] };
-      setCustom([...custom, newCustom]);
-    }
+    const next = [...itins];
+    next[idx] = { ...itin, destinations: [dest, ...itin.destinations] };
+    setItins(next);
   };
 
   const removeDestination = (i) => {
-    if (!customItin) return; // i default non si modificano senza copia personale
-    const list = [...customItin.destinations];
+    const next = [...itins];
+    const list = [...itin.destinations];
     list.splice(i, 1);
-    const next = [...custom];
-    next[customIdx] = { ...customItin, destinations: list };
-    setCustom(next);
+    next[idx] = { ...itin, destinations: list };
+    setItins(next);
   };
 
   const deleteItinerary = () => {
-    if (!customItin) return; // non si elimina un default
     if (!confirm('Eliminare questo itinerario?')) return;
-    setCustom(custom.filter(c => c.id !== id));
+    setItins(itins.filter(x => x.id !== id));
     router.push('/');
   };
 
@@ -68,26 +61,19 @@ export default function DayDetails() {
     <div className="container">
       <header className="head">
         <div>
-          <h1 className="title">{itinerary.title}</h1>
+          <h1 className="title">{itin.title}</h1>
+          <div className="sub">{itin.displayDate}</div>
         </div>
         <div className="head-actions">
           <a href="/" className="btn ghost">← Indietro</a>
-          {customItin && <button className="btn ghost" onClick={deleteItinerary}>Elimina itinerario</button>}
+          <button className="btn ghost" onClick={deleteItinerary}>Elimina itinerario</button>
         </div>
       </header>
 
-      <div className="sub">{id}</div>
-
       <DestinationForm onAdd={addDestination} />
 
-      {!customItin && defaultItin && (
-        <p style={{margin:'6px 0 14px', color:'var(--muted)'}}>
-          (Questo è un itinerario di default. Aggiungendo/rimuovendo verrà creata una tua copia personale.)
-        </p>
-      )}
-
       <ul className="list">
-        {itinerary.destinations.map((d, i) => (
+        {itin.destinations.map((d, i) => (
           <li key={i} className="item">
             <div className="info">
               <div className="name">{d.name}</div>
@@ -95,9 +81,7 @@ export default function DayDetails() {
             </div>
             <div className="actions">
               <button className="btn" onClick={() => openInMaps(d.address)}>Apri in Mappe</button>
-              {customItin && (
-                <button className="btn ghost" onClick={() => removeDestination(i)}>Rimuovi</button>
-              )}
+              <button className="btn ghost" onClick={() => removeDestination(i)}>Rimuovi</button>
             </div>
           </li>
         ))}

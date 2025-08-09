@@ -1,24 +1,28 @@
 // components/ItineraryForm.js
 import { useState } from 'react';
 
+const itDate = (d) =>
+  d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
 export default function ItineraryForm({ onAdd }) {
-  const [date, setDate] = useState('');
+  const [dateISO, setDateISO] = useState('');   // YYYY-MM-DD (safe per URL)
   const [title, setTitle] = useState('');
 
   const submit = (e) => {
     e.preventDefault();
-    if (!date || !title) return;
+    if (!dateISO || !title) return;
 
-    // Formatta in gg/MM/yyyy
-    const d = new Date(date);
-    if (isNaN(d)) {
-      alert('Data non valida');
-      return;
-    }
-    const formattedId = d.toLocaleDateString('it-IT'); // esempio: 21/08/2025
+    const d = new Date(dateISO);
+    if (isNaN(d)) { alert('Data non valida'); return; }
 
-    onAdd({ id: formattedId, title, destinations: [] });
-    setDate('');
+    onAdd({
+      id: dateISO,                       // usato nella route /day/[id]
+      displayDate: itDate(d),            // mostrato in UI (gg/MM/yyyy)
+      title,
+      destinations: []
+    });
+
+    setDateISO('');
     setTitle('');
   };
 
@@ -26,7 +30,7 @@ export default function ItineraryForm({ onAdd }) {
     <form onSubmit={submit} className="form">
       <label>
         Data
-        <input type="date" value={date} onChange={(e)=>setDate(e.target.value)} />
+        <input type="date" value={dateISO} onChange={(e)=>setDateISO(e.target.value)} />
       </label>
       <label>
         Titolo

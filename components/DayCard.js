@@ -1,15 +1,14 @@
 // components/DayCard.js
 import Link from 'next/link';
 
-export default function DayCard({ day, isCustom = false, onDelete }) {
-  const d = new Date(day.id);
-  const dateStr = isNaN(d)
-    ? day.id
-    : d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+export default function DayCard({ day, onDelete }) {
+  const dateLabel = day.displayDate || new Date(day.id).toLocaleDateString('it-IT', {
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  });
 
   return (
     <div className="card" role="group" aria-label={`Itinerario ${day.title}`}>
-      <div className="date">{dateStr}</div>
+      <div className="date">{dateLabel}</div>
       <h2 className="title">{day.title}</h2>
       <p className="meta">
         {day.destinations.length} destinazione{day.destinations.length !== 1 ? 'i' : ''}
@@ -19,9 +18,7 @@ export default function DayCard({ day, isCustom = false, onDelete }) {
         <Link href={`/day/${encodeURIComponent(day.id)}`} legacyBehavior passHref>
           <a className="btn">Apri</a>
         </Link>
-        {isCustom && (
-          <button className="btn ghost" onClick={onDelete}>Elimina</button>
-        )}
+        <button className="btn ghost" onClick={onDelete}>Elimina</button>
       </div>
 
       <style jsx>{`
