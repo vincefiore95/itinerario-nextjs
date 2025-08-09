@@ -11,7 +11,7 @@ export default function DayCard({ day, onDelete }) {
       <div className="date">{dateLabel}</div>
       <h2 className="title">{day.title}</h2>
       <p className="meta">
-        {day.destinations.length} destinazione{day.destinations.length !== 1 ? 'i' : ''}
+        {day.destinations.length} destinazion{day.destinations.length !== 1 ? 'i' : 'e'}
       </p>
 
       <div className="actions">
