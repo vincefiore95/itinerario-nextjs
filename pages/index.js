@@ -6,7 +6,6 @@ export default function Home() {
     <div className="wrap">
       <header className="top">
         <h1>I miei itinerari</h1>
-        {/* opzionale: barra ricerca futura */}
       </header>
 
       <section className="grid">
@@ -22,7 +21,7 @@ export default function Home() {
           max-width: 1200px;
           margin: 0 auto;
         }
-        .top { margin: 4px 0 18px; }
+        .top { margin: 6px 0 18px; }
         h1 {
           margin: 0;
           font-size: clamp(1.4rem, 3.8vw, 2.25rem);
@@ -32,17 +31,16 @@ export default function Home() {
         .grid {
           display: grid;
           gap: 14px;
-          grid-template-columns: 1fr;           /* mobile: 1 colonna */
+          grid-template-columns: 1fr;      /* mobile */
         }
-
         @media (min-width: 560px) {
-          .grid { grid-template-columns: repeat(2, 1fr); }  /* tablet piccolo */
+          .grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (min-width: 900px) {
-          .grid { gap: 18px; grid-template-columns: repeat(3, 1fr); } /* desktop medio */
+          .grid { gap: 18px; grid-template-columns: repeat(3, 1fr); }
         }
         @media (min-width: 1200px) {
-          .grid { grid-template-columns: repeat(4, 1fr); }  /* desktop largo */
+          .grid { grid-template-columns: repeat(4, 1fr); }
         }
       `}</style>
     </div>

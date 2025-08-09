@@ -21,11 +21,12 @@ export default function DayCard({ day }) {
           padding: 16px;
           border-radius: 16px;
           background: #fff;
-          border: 1px solid #eaeaea;
+          border: 1px solid #ececec;
           box-shadow: 0 1px 2px rgba(0,0,0,.04);
           text-decoration: none;
           color: inherit;
-          transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+          transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease, background .2s;
+          will-change: transform;
         }
         .card:hover, .card:focus-visible {
           transform: translateY(-2px);
@@ -44,7 +45,7 @@ export default function DayCard({ day }) {
         }
         .title {
           margin: 0;
-          font-size: 1.25rem;
+          font-size: 1.2rem;
           line-height: 1.2;
           font-weight: 700;
           letter-spacing: .2px;
