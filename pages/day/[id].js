@@ -49,6 +49,7 @@ export default function DayDetails() {
         </div>
       </header>
 
+
       {/* ...DestinationForm + lista come già impostato... */}
 
       <style jsx>{`
