@@ -7,19 +7,22 @@ import ItineraryForm from '../components/ItineraryForm';
 export default function Home() {
   const [custom, setCustom] = useLocalStorage('itineraries_custom', []);
 
-  // Unione: i tuoi prima (flag _custom), poi i default che non sono stati sovrascritti
+  // 1) Prima i default che non sono stati sovrascritti,
+  // 2) poi gli itinerari personalizzati nell'ordine di inserimento
   const combined = [
-    ...custom.map(c => ({ ...c, _custom: true })),
     ...DEFAULTS
       .filter(d => !custom.some(c => c.id === d.id))
       .map(d => ({ ...d, _custom: false })),
-  ].sort((a, b) => (a.id < b.id ? -1 : 1));
+    ...custom.map(c => ({ ...c, _custom: true })),
+  ];
 
   const addItinerary = (itin) => {
-    if (combined.some(d => d.id === itin.id)) {
+    // Evita duplicati sulla stessa data
+    if ([...custom, ...DEFAULTS].some(d => d.id === itin.id)) {
       alert('Esiste già un itinerario con questa data.');
       return;
     }
+    // APPEND in coda
     setCustom([...custom, itin]);
   };
 

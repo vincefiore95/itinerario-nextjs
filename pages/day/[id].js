@@ -11,7 +11,6 @@ export default function DayDetails() {
 
   if (!id) return null;
 
-  // Cerca la versione personalizzata; altrimenti usa quella di default
   const customIdx = custom.findIndex(d => d.id === id);
   const customItin = customIdx >= 0 ? custom[customIdx] : null;
   const defaultItin = DEFAULTS.find(d => d.id === id) || null;
@@ -34,20 +33,23 @@ export default function DayDetails() {
 
   const addDestination = (dest) => {
     if (customItin) {
+      // aggiorna l'esistente
       const next = [...custom];
       next[customIdx] = { ...customItin, destinations: [dest, ...customItin.destinations] };
       setCustom(next);
     } else if (defaultItin) {
-      // Prima modifica: crea copia personale a partire dal default
-      setCustom([{ ...defaultItin, destinations: [dest, ...defaultItin.destinations] }, ...custom]);
+      // prima personalizzazione: APPEND in coda
+      const newCustom = { ...defaultItin, destinations: [dest, ...defaultItin.destinations] };
+      setCustom([...custom, newCustom]);
     } else {
-      // Caso limite: non esiste in default (URL manuale)
-      setCustom([{ id, title: id, destinations: [dest] }, ...custom]);
+      // creazione da URL: APPEND in coda
+      const newCustom = { id, title: id, destinations: [dest] };
+      setCustom([...custom, newCustom]);
     }
   };
 
   const removeDestination = (i) => {
-    if (!customItin) return; // Non si tocca il default senza copia personale
+    if (!customItin) return; // i default non si modificano senza copia personale
     const list = [...customItin.destinations];
     list.splice(i, 1);
     const next = [...custom];
@@ -56,7 +58,7 @@ export default function DayDetails() {
   };
 
   const deleteItinerary = () => {
-    if (!customItin) return; // non puoi eliminare i default
+    if (!customItin) return; // non si elimina un default
     if (!confirm('Eliminare questo itinerario?')) return;
     setCustom(custom.filter(c => c.id !== id));
     router.push('/');
