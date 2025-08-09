@@ -109,4 +109,5 @@ export default function DayCard({ day }) {
       `}</style>
     </article>
   );
+  
 }
