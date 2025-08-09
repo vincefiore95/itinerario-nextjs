@@ -4,7 +4,6 @@ import { itineraries as DEFAULTS } from '../data/itineraries';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import ItineraryForm from '../components/ItineraryForm';
 
-// converte i default aggiungendo displayDate se non c'è
 const withDisplay = (list) =>
   list.map(d => ({
     ...d,
@@ -14,7 +13,7 @@ const withDisplay = (list) =>
   }));
 
 export default function Home() {
-  // unica fonte dati: localStorage, inizializzato con i default
+  // unica fonte: localStorage inizializzato coi default
   const [itins, setItins] = useLocalStorage('itineraries_all', withDisplay(DEFAULTS));
 
   const addItinerary = (itin) => {
@@ -22,7 +21,7 @@ export default function Home() {
       alert('Esiste già un itinerario con questa data.');
       return;
     }
-    // Append in coda
+    // nuovi in coda
     setItins([...itins, itin]);
   };
 
@@ -33,29 +32,24 @@ export default function Home() {
 
   return (
     <div className="container">
-      <header className="top">
-        <h1>I miei itinerari</h1>
+      <header style={{margin:'6px 0 14px'}}>
+        <h1 className="h1" style={{margin:0}}>I miei itinerari</h1>
       </header>
 
+      {/* Form di creazione — già coerente con i token globali */}
       <ItineraryForm onAdd={addItinerary} />
 
-      <section className="grid">
+      <section className="grid home">
         {itins.map(day => (
-          <DayCard
-            key={day.id}
-            day={day}
-            onDelete={() => deleteItinerary(day.id)}
-          />
+          <DayCard key={day.id} day={day} onDelete={() => deleteItinerary(day.id)} />
         ))}
       </section>
 
       <style jsx>{`
-        .top{ margin:6px 0 18px; }
-        h1{ margin:0; font-size:clamp(1.4rem,3.6vw,2.25rem); line-height:1.1; letter-spacing:.3px; }
-        .grid{ display:grid; gap:14px; grid-template-columns:1fr; }
-        @media (min-width:560px){ .grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
-        @media (min-width:900px){ .grid{ gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); } }
-        @media (min-width:1200px){ .grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+        .home { grid-template-columns: 1fr; }
+        @media (min-width: 560px) { .home { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 900px) { .home { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; } }
+        @media (min-width: 1200px) { .home { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
       `}</style>
     </div>
   );
