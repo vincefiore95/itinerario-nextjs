@@ -2,22 +2,31 @@
 import { useState } from 'react';
 
 export default function ItineraryForm({ onAdd }) {
-  const [id, setId] = useState('');
+  const [date, setDate] = useState('');
   const [title, setTitle] = useState('');
 
   const submit = (e) => {
     e.preventDefault();
-    if (!id || !title) return;
-    onAdd({ id, title, destinations: [] });
-    setId('');
+    if (!date || !title) return;
+
+    // Formatta in gg/MM/yyyy
+    const d = new Date(date);
+    if (isNaN(d)) {
+      alert('Data non valida');
+      return;
+    }
+    const formattedId = d.toLocaleDateString('it-IT'); // esempio: 21/08/2025
+
+    onAdd({ id: formattedId, title, destinations: [] });
+    setDate('');
     setTitle('');
   };
 
   return (
     <form onSubmit={submit} className="form">
       <label>
-        Data (YYYY-MM-DD)
-        <input value={id} onChange={(e)=>setId(e.target.value)} placeholder="2025-08-21" />
+        Data
+        <input type="date" value={date} onChange={(e)=>setDate(e.target.value)} />
       </label>
       <label>
         Titolo
