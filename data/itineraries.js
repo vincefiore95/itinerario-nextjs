@@ -66,7 +66,6 @@ export const itineraries = [
     title: "Giorno 8",
     destinations: [
 		{ name: "Valley of Fire State Park", address: "Moapa Valley, NV 89040, Stati Uniti" },
-		{ name: "Horseshoe Bend", address: "Horseshoe Bend, Arizona 86040, Stati Uniti" },
 		{ name: "Welcome to Fabulous Las Vegas", address: "Welcome to Fabulous Las Vegas, 5100 Las Vegas Blvd S, Las Vegas, NV 89119, Stati Uniti" }
     ]
   }
