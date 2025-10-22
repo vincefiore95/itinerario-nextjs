@@ -1,8 +1,42 @@
 // pages/index.js
-import DayCard from '../components/DayCard';
-import { itineraries as DEFAULTS } from '../data/itineraries';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import ItineraryForm from '../components/ItineraryForm';
+
+async function saveAndShare({ clientName, clientEmail, title, dateId, destinations }) {
+  // 1) crea/recupera cliente
+  const r1 = await fetch('/api/clients', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name: clientName, email: clientEmail })
+  });
+  const d1 = await r1.json();
+  if (!r1.ok) throw new Error(d1.error || 'Errore creazione cliente');
+  const client = d1.client;
+  const clientShare = d1.shareUrl; // /share/client/<token>
+
+  // 2) crea itinerario
+  const r2 = await fetch(`/api/clients/${client.id}/itineraries`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ title, dateId })
+  });
+  const d2 = await r2.json();
+  if (!r2.ok) throw new Error(d2.error || 'Errore creazione itinerario');
+  const itinerary = d2.itinerary;
+  const itineraryShare = d2.shareUrl; // /share/itinerary/<token>
+
+  // 3) aggiungi destinazioni (se presenti)
+  if (Array.isArray(destinations) && destinations.length) {
+    const r3 = await fetch(`/api/itineraries/${itinerary.id}/destinations`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ destinations: destinations.map((d, i)=>({
+        name: d.name, address: d.address, order_index: i
+      })) })
+    });
+    const d3 = await r3.json();
+    if (!r3.ok) throw new Error(d3.error || 'Errore aggiunta destinazioni');
+  }
+
+  return { clientShare, itineraryShare };
+}
+
 
 const withDisplay = (list) =>
   list.map(d => ({
@@ -13,8 +47,6 @@ const withDisplay = (list) =>
   }));
 
 export default function Home() {
-  // unica fonte: localStorage inizializzato coi default
-  const [itins, setItins] = useLocalStorage('itineraries_all', withDisplay(DEFAULTS));
 
   const addItinerary = (itin) => {
     if (itins.some(d => d.id === itin.id)) {
@@ -38,12 +70,6 @@ export default function Home() {
 
       {/* Form di creazione — già coerente con i token globali */}
       <ItineraryForm onAdd={addItinerary} />
-
-      <section className="grid home">
-        {itins.map(day => (
-          <DayCard key={day.id} day={day} onDelete={() => deleteItinerary(day.id)} />
-        ))}
-      </section>
 
       <style jsx>{`
         .home { grid-template-columns: 1fr; }

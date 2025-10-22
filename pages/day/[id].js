@@ -1,7 +1,4 @@
 import { useRouter } from "next/router";
-import { itineraries as DEFAULTS } from "../../data/itineraries";
-import { useLocalStorage } from "../../hooks/useLocalStorage";
-import DestinationForm from "../../components/DestinationForm";
 
 const withDisplay = (list) =>
   list.map((d) => ({
@@ -18,11 +15,6 @@ const withDisplay = (list) =>
 export default function DayDetails() {
   const router = useRouter();
   const { id } = router.query;
-  const [itins, setItins] = useLocalStorage(
-    "itineraries_all",
-    withDisplay(DEFAULTS)
-  );
-
   if (!id) return null;
   const idx = itins.findIndex((d) => d.id === id);
   const itin = idx >= 0 ? itins[idx] : null;
