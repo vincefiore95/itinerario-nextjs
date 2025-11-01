@@ -44,8 +44,32 @@ export default function ItineraryShare({ token }) {
             </header>
 
             <FormCard title="Dettagli">
-              <ReadonlyField label="Data" value={it.date_id ? new Date(it.date_id).toLocaleDateString('it-IT') : ''} />
-              <ReadonlyField label="Cliente" value={[it.client?.name||'', it.client?.email?`(${it.client.email})`:'' ].filter(Boolean).join(' ')} />
+              <div className="grid-two" style={{ gap: 16 }}>
+                <ReadonlyField
+                  variant="underline"
+                  label="Cliente"
+                  value={it.client.name}
+                />
+                <ReadonlyField
+                  variant="underline"
+                  label="Email"
+                  value={it.client.email}
+                />
+              </div>
+              {/* Inizio + Fine sulla stessa riga */}
+              <div className="grid-two" style={{ gap: 16, marginTop: 20 }}>
+                <ReadonlyField
+                  variant="underline"
+                  label="Inizio"
+                  value={it.start_date ? new Date(it.start_date).toLocaleDateString('it-IT') : '' 
+                  }
+                />
+                <ReadonlyField
+                  variant="underline"
+                  label="Fine"
+                  value={it.end_date ? new Date(it.end_date).toLocaleDateString('it-IT') : ''}
+                />
+              </div>
             </FormCard>
 
             <section className="card" style={{ padding: 16 }}>

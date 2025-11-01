@@ -43,22 +43,21 @@ export default function ItineraryEditor() {
   const [bulkSaving, setBulkSaving] = useState(false);
 
   const enterBulkEdit = () => {
-    // costruisco l'oggetto editMap solo per le righe selezionate
-    const map = {};
-    (it?.destinations || []).forEach(d => {
-      if (sel.has(d.id)) {
-        map[d.id] = {
-          name: d.name || '',
-          address: d.address || '',
-          visit_date: d.visit_date || '',
-          arrival_time: d.arrival_time || '',
-          departure_time: d.departure_time || '',
-        };
-      }
-    });
-    setEditMap(map);
-    setBulkEdit(true);
-  };
+  const map = {};
+  (it?.destinations || []).forEach(d => {
+    if (sel.has(d.id)) {
+      map[d.id] = {
+        name: d.name || '',
+        address: d.address || '',
+        visit_date: toDateInput(d.visit_date),     // <-- qui
+        arrival_time: d.arrival_time || '',
+        departure_time: d.departure_time || '',
+      };
+    }
+  });
+  setEditMap(map);
+  setBulkEdit(true);
+};
 
   const cancelBulkEdit = () => {
     setBulkEdit(false);
@@ -224,37 +223,48 @@ export default function ItineraryEditor() {
   if (bulkInvalid || bulkUnchanged) return;
   setBulkSaving(true);
   try {
-    // salviamo solo le righe selezionate
-    const ids = selectedIds.filter(id => editMap[id]); 
-    // eseguo i PUT in parallelo (va benissimo qui, i volumi sono piccoli)
+    // salviamo solo le righe selezionate (quelle effettivamente in edit)
+    const ids = selectedIds.filter(id => editMap[id]);
+
+    // PUT in parallelo per ogni destinazione selezionata
     const results = await Promise.all(ids.map(async (destId) => {
       const payload = editMap[destId];
       const r = await fetch(`/api/itineraries/${id}/destinations/${destId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: payload.name.trim(),
-          address: payload.address?.trim() || null,
+          name: (payload.name || '').trim(),
+          address: (payload.address || '').trim() || null,
           visit_date: payload.visit_date,
           arrival_time: payload.arrival_time || null,
           departure_time: payload.departure_time || null
         })
       });
-      const j = await r.json();
+      const text = await r.text();
+      let j; try { j = JSON.parse(text); } catch { throw new Error(text || 'Risposta non JSON'); }
       if (!r.ok) throw new Error(j.error || 'Errore aggiornamento');
       return j.destination; // record aggiornato
     }));
 
-    // aggiorno lo stato con i record ritornati
+    // aggiorna lo stato con i record ritornati
     setIt(prev => ({
       ...prev,
-      destinations: (prev.destinations || []).map(d => {
-        const updated = results.find(x => x.id === d.id);
-        return updated ? updated : d;
-      }).sort((a,b)=>(a.order_index??0)-(b.order_index??0))
+      destinations: (prev.destinations || [])
+        .map(d => {
+          const updated = results.find(x => x.id === d.id);
+          return updated ? updated : d;
+        })
+        .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
     }));
 
-    // esco dalla modalità modifica
+    // ✅ deseleziona SOLO le righe appena salvate
+    setSel(prev => {
+      const n = new Set(prev);
+      ids.forEach(x => n.delete(x));
+      return n;
+    });
+
+    // esci dalla modalità inline edit
     cancelBulkEdit();
   } catch (e) {
     alert(e.message || 'Errore durante il salvataggio');
@@ -262,6 +272,21 @@ export default function ItineraryEditor() {
     setBulkSaving(false);
   }
 }
+
+// Converte qualsiasi valore data in stringa compatibile con <input type="date">: YYYY-MM-DD
+const toDateInput = (v) => {
+  if (!v) return '';
+  // se è già YYYY-MM-DD, lascio così
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const d = new Date(v);
+  if (isNaN(d)) return '';
+  // evito problemi di timezone normalizzando all'UTC "puro"
+  const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return z.toISOString().slice(0, 10);
+};
+
+// Solo per visualizzazione in read-only (dd/mm/yyyy)
+const toDisplayIT = (v) => (v ? new Date(v).toLocaleDateString('it-IT') : '—');
 
   return (
     <>
@@ -528,15 +553,18 @@ export default function ItineraryEditor() {
                         </td>
 
                         {/* Data */}
-                        <td>
+                       <td>
                           {bulkEdit && sel.has(d.id) ? (
                             <input
-                              className="input" type="date"
-                              value={editMap[d.id]?.visit_date || ''}
-                              onChange={e=> setEditMap(m => ({...m, [d.id]: {...m[d.id], visit_date: e.target.value} })) }
+                              className="input"
+                              type="date"
+                              value={editMap[d.id]?.visit_date || ''}                // <-- YYYY-MM-DD
+                              onChange={e =>
+                                setEditMap(m => ({ ...m, [d.id]: { ...m[d.id], visit_date: e.target.value } }))
+                              }
                             />
                           ) : (
-                            d.visit_date || <span className="muted">—</span>
+                            toDisplayIT(d.visit_date) || <span className="muted">—</span>
                           )}
                         </td>
 
